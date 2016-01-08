@@ -3,6 +3,7 @@ namespace Gamegos\Util\Tests\Collection;
 
 /* Imports from PHP core */
 use ArrayIterator;
+use OutOfBoundsException;
 
 /* Imports from PHPUnit */
 use PHPUnit_Framework_TestCase as TestCase;
@@ -20,6 +21,10 @@ use Gamegos\Util\Collection\Exception\InvalidCollectableException;
  */
 class CollectionTest extends TestCase
 {
+    /**
+     * Non-string argument provider.
+     * @return array
+     */
     public function nonStringArgumentsProvider()
     {
         return [
@@ -205,7 +210,7 @@ class CollectionTest extends TestCase
         $dummyData   = $this->createTraversableCollection(3);
         $collectionA = $dummyData['collection'];
 
-        // collectionB can contain the items of $collectionA and will not cover 'add' method.
+        // Collection B can contain the items of $collectionA and will not cover 'add' method.
         $collectionB = $this->getMockForCollection($collectionA->getItemClass(), ['add']);
         foreach ($dummyData['items'] as $i => $item) {
             $collectionB->expects($this->at($i))->method('add')->with($this->identicalTo($item));
@@ -245,7 +250,6 @@ class CollectionTest extends TestCase
     {
         $itemClass  = $this->createCollectableClass();
         $collection = $this->getMockForCollection($itemClass, ['getItemHash', 'offsetExists']);
-
         $item       = $this->getMock($itemClass);
         $hash       = 'FOO';
 
@@ -291,7 +295,7 @@ class CollectionTest extends TestCase
         $dummyData   = $this->createTraversableCollection(3);
         $collectionA = $dummyData['collection'];
 
-        // collectionB can contain the items of $collectionA and will not cover 'add' method.
+        // Collection B can contain the items of $collectionA and will not cover 'add' method.
         $collectionB = $this->getMockForCollection($collectionA->getItemClass(), ['remove']);
         foreach ($dummyData['items'] as $i => $item) {
             $collectionB->expects($this->at($i))->method('remove')->with($this->identicalTo($item));
@@ -306,7 +310,7 @@ class CollectionTest extends TestCase
     public function testRemoveAllShouldThrowInvalidCollectableException()
     {
         $collectionA = $this->createTraversableCollection(3)['collection'];
-        // collectionB can contain a different type of collectables.
+        // Collection B can contain a different type of collectables.
         $collectionB = $this->getMockForCollection($this->createCollectableClass());
         $this->setExpectedException(InvalidCollectableException::class);
         $collectionB->removeAll($collectionA);
@@ -324,7 +328,6 @@ class CollectionTest extends TestCase
             $items[$i] = $this->getMock($itemClass);
         }
 
-        // @codeCoverageIgnoreStart
         $collectionA = $this->getMockForCollection($itemClass);
         // Add items #0, #1 and #2  to collectionA.
         for ($i = 0; $i < 3; $i++) {
@@ -335,7 +338,6 @@ class CollectionTest extends TestCase
         for ($i = 1; $i < 5; $i++) {
             $collectionB->add($items[$i]);
         }
-        // @codeCoverageIgnoreEnd
 
         $collectionB->removeAllExcept($collectionA);
 
@@ -359,7 +361,7 @@ class CollectionTest extends TestCase
     public function testRemoveAllExceptShouldThrowInvalidCollectableException()
     {
         $collectionA = $this->createTraversableCollection(3)['collection'];
-        // collectionB can contain a different type of collectables.
+        // Collection B can contain a different type of collectables.
         $collectionB = $this->getMockForCollection($this->createCollectableClass());
         $this->setExpectedException(InvalidCollectableException::class);
         $collectionB->removeAllExcept($collectionA);
@@ -372,13 +374,12 @@ class CollectionTest extends TestCase
     {
         $itemClass = $this->createCollectableClass();
         $items     = [];
-        // @codeCoverageIgnoreStart
+
         $collection = $this->getMockForCollection($itemClass);
         for ($i = 0; $i < 3; $i++) {
             $items[$i] = $this->getMock($itemClass);
             $collection->add($items[$i]);
         }
-        // @codeCoverageIgnoreEnd
 
         $collection->clear();
 
@@ -396,7 +397,7 @@ class CollectionTest extends TestCase
             $this->assertNull($collection[$hash]); // by ArrayAccess::offsetGet()
         }
 
-        // isEmpty() should return true.
+        // Collection::isEmpty() should return true.
         $this->assertTrue($collection->isEmpty());
         // Collection size should be 0.
         $this->assertCount(0, $collection);
@@ -409,17 +410,16 @@ class CollectionTest extends TestCase
     {
         $itemClass = $this->createCollectableClass();
         $items     = [];
-        // @codeCoverageIgnoreStart
+
         $collection = $this->getMockForCollection($itemClass);
         for ($addIndex = 0; $addIndex < 3; $addIndex++) {
             $items[$addIndex] = $this->getMock($itemClass);
             $collection->add($items[$addIndex]);
         }
-        // @codeCoverageIgnoreEnd
 
         $array = $collection->toArray();
 
-        // toArray() should return an array.
+        // Collection::toArray() should return an array.
         $this->assertInternalType('array', $array);
 
         // The exported array should equal to the collection in many ways.
@@ -433,6 +433,28 @@ class CollectionTest extends TestCase
     {
         $collection = $this->getMockForCollection($this->createCollectableClass());
         $this->assertInstanceOf(ArrayIterator::class, $collection->getIterator());
+    }
+
+    /**
+     * @testdox offsetSet() should throw InvalidCollectableException for invalid collectable object
+     */
+    public function testOffsetSetShouldThrowInvalidCollectableException()
+    {
+        $collection    = $this->getMockForCollection($this->createCollectableClass());
+        $invalidObject = $this->createCollectableObject();
+
+        $this->setExpectedException(InvalidCollectableException::class);
+        $collection['any-hash'] = $invalidObject;
+    }
+
+    /**
+     * @testdox offsetUnset() should throw OutOfBoundsException for invalid hash
+     */
+    public function testOffsetUnsetShouldThrowOutOfBoundsException()
+    {
+        $collection = $this->getMockForCollection($this->createCollectableClass());
+        $this->setExpectedException(OutOfBoundsException::class);
+        unset($collection['any-hash']);
     }
 
     /**
