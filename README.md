@@ -12,5 +12,5 @@ Contains miscellaneous utility classes.
 
 Run the following command in the root directory of your project:
 ```sh
-composer require gamegos/util:dev-master
+composer require gamegos/util
 ```
