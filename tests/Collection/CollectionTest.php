@@ -46,7 +46,7 @@ class CollectionTest extends TestCase
     public function testConstructorShouldThrowExceptionForNonStringArgument($itemClass)
     {
         $this->setExpectedException(InvalidItemClassException::class, null, InvalidItemClassException::NOT_STRING);
-        $collection = new Collection($itemClass);
+        new Collection($itemClass);
     }
 
     /**
@@ -55,7 +55,7 @@ class CollectionTest extends TestCase
     public function testConstructorShouldThrowExceptionForInvalidClass()
     {
         $this->setExpectedException(InvalidItemClassException::class, null, InvalidItemClassException::NOT_COLLECTABLE);
-        $collection = new Collection('stdClass');
+        new Collection('stdClass');
     }
 
     public function testConstructorShouldSetItemClass()
@@ -72,9 +72,9 @@ class CollectionTest extends TestCase
     {
         $itemClass = $this->createCollectableClass();
         $testItems = [
-            $this->getMock($itemClass),
-            $this->getMock($itemClass),
-            $this->getMock($itemClass),
+            new $itemClass(),
+            new $itemClass(),
+            new $itemClass(),
         ];
 
         $collection = $this->getMockForCollection($itemClass);
@@ -85,21 +85,21 @@ class CollectionTest extends TestCase
         $count = 0;
         foreach ($testItems as $object) {
             // The collection size should equal to $count before 'add' operation.
-            $this->assertCount($count, $collection); // via Countable::count()
+            $this->assertCount($count, $collection); // via Countable::count().
 
             // Add the item into the collection.
             $collection->add($object);
 
             // The collection should contain the new item.
-            $this->assertContains($object, $collection);       // via Traversable interface
-            $this->assertTrue($collection->contains($object)); // via contains()
+            $this->assertContains($object, $collection);       // via Traversable interface.
+            $this->assertTrue($collection->contains($object)); // via contains().
 
             $hash = $collection->getItemHash($object);
 
-            // The collection should have the hash of the new item via ArrayAccess::offsetExists()
+            // The collection should have the hash of the new item via ArrayAccess::offsetExists().
             $this->assertArrayHasKey($hash, $collection);
 
-            // The new item should be accessed by its hash via ArrayAccess::offsetGet()
+            // The new item should be accessed by its hash via ArrayAccess::offsetGet().
             $this->assertSame($object, $collection[$hash]);
 
             // The collection size should equal to $count + 1 after 'add' operation.
@@ -122,14 +122,14 @@ class CollectionTest extends TestCase
 
             // The collection should NOT contain the removed item.
             $this->assertNotContains($object, $collection);     // via Traversable interface
-            $this->assertFalse($collection->contains($object)); // via contains()
+            $this->assertFalse($collection->contains($object)); // via contains().
 
             $hash = $collection->getItemHash($object);
 
-            // The collection should NOT have the hash of the removed item via ArrayAccess::offsetExists()
+            // The collection should NOT have the hash of the removed item via ArrayAccess::offsetExists().
             $this->assertArrayNotHasKey($hash, $collection);
 
-            // The removed item should be NOT accessed by its hash via ArrayAccess::offsetGet()
+            // The removed item should be NOT accessed by its hash via ArrayAccess::offsetGet().
             $this->assertNull($collection[$hash]);
 
             // The collection size should equal to $count - 1 after 'remove' operation.
@@ -146,7 +146,7 @@ class CollectionTest extends TestCase
     {
         $itemClass  = $this->createCollectableClass();
         $collection = $this->getMockForCollection($itemClass, ['getItemHash', 'offsetSet']);
-        $item       = $this->getMock($itemClass);
+        $item       = new $itemClass();
         $hash       = 'FOO';
 
         $collection->expects($this->once())->method('getItemHash')->with($this->identicalTo($item))->willReturn($hash);
@@ -250,7 +250,7 @@ class CollectionTest extends TestCase
     {
         $itemClass  = $this->createCollectableClass();
         $collection = $this->getMockForCollection($itemClass, ['getItemHash', 'offsetExists']);
-        $item       = $this->getMock($itemClass);
+        $item       = new $itemClass();
         $hash       = 'FOO';
 
         $collection->expects($this->once())->method('getItemHash')->with($this->identicalTo($item))->willReturn($hash);
@@ -278,7 +278,7 @@ class CollectionTest extends TestCase
     {
         $itemClass  = $this->createCollectableClass();
         $collection = $this->getMockForCollection($itemClass, ['getItemHash', 'offsetUnset']);
-        $item       = $this->getMock($itemClass);
+        $item       = new $itemClass();
         $hash       = 'FOO';
 
         $collection->expects($this->once())->method('getItemHash')->with($this->identicalTo($item))->willReturn($hash);
@@ -325,7 +325,7 @@ class CollectionTest extends TestCase
         $itemClass = $this->createCollectableClass();
         $items     = [];
         for ($i = 0; $i < 5; $i++) {
-            $items[$i] = $this->getMock($itemClass);
+            $items[$i] = new $itemClass();
         }
 
         $collectionA = $this->getMockForCollection($itemClass);
@@ -377,7 +377,7 @@ class CollectionTest extends TestCase
 
         $collection = $this->getMockForCollection($itemClass);
         for ($i = 0; $i < 3; $i++) {
-            $items[$i] = $this->getMock($itemClass);
+            $items[$i] = new $itemClass();
             $collection->add($items[$i]);
         }
 
@@ -413,7 +413,7 @@ class CollectionTest extends TestCase
 
         $collection = $this->getMockForCollection($itemClass);
         for ($addIndex = 0; $addIndex < 3; $addIndex++) {
-            $items[$addIndex] = $this->getMock($itemClass);
+            $items[$addIndex] = new $itemClass();
             $collection->add($items[$addIndex]);
         }
 
@@ -487,10 +487,10 @@ class CollectionTest extends TestCase
         $class = $this->createCollectableClass();
         $items = [];
         for ($i = 0; $i < $numItems; $i++) {
-            $items[] = $this->getMock($class);
+            $items[] = new $class();
         }
 
-        $collection = $this->getMock(CollectionInterface::class);
+        $collection = $this->getMockBuilder(CollectionInterface::class)->getMock();
         $collection->method('getIterator')->willReturn(new ArrayIterator($items));
         $collection->method('getItemClass')->willReturn($class);
 
@@ -501,7 +501,7 @@ class CollectionTest extends TestCase
     }
 
     /**
-     * Create a collection instance without coveraging the constructor.
+     * Create a collection instance without coverage the constructor.
      * getItemClass() method is mocked initially.
      * @param  string $itemClass
      * @param  array $methods Additional methods to be mocked
@@ -510,7 +510,8 @@ class CollectionTest extends TestCase
     protected function getMockForCollection($itemClass, $methods = [])
     {
         $methods    = array_unique(array_merge(['getItemClass'], $methods));
-        $collection = $this->getMock(Collection::class, $methods, [], '', false, false);
+        /* @var $collection Collection */
+        $collection = $this->getMockBuilder(Collection::class)->setMethods($methods)->disableOriginalConstructor()->getMock();
         $collection->method('getItemClass')->willReturn($itemClass);
         return $collection;
     }

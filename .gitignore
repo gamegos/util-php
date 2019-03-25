@@ -1,9 +1,11 @@
 /.buildpath
-/.project
-/.settings
 /.externalToolBuilders
 /.idea
 /.metadata
+/.project
+/.settings
+/.tmp
+/composer.lock
+/log
 /nbproject
 /vendor
-/log
